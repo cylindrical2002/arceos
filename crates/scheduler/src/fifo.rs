@@ -37,8 +37,9 @@ impl<T> FifoTask<T> {
     }
 }
 
-impl<T> const Deref for FifoTask<T> {
+impl<T> Deref for FifoTask<T> {
     type Target = T;
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.inner
     }
@@ -63,6 +64,10 @@ impl<T> FifoScheduler<T> {
         Self {
             ready_queue: List::new(),
         }
+    }
+    /// get the name of scheduler
+    pub fn scheduler_name() -> &'static str {
+        "FIFO"
     }
 }
 
@@ -89,5 +94,9 @@ impl<T> BaseScheduler for FifoScheduler<T> {
 
     fn task_tick(&mut self, _current: &Self::SchedItem) -> bool {
         false // no reschedule
+    }
+
+    fn set_priority(&mut self, _task: &Self::SchedItem, _prio: isize) -> bool {
+        false
     }
 }

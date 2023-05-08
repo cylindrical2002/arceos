@@ -12,12 +12,12 @@ ArceOS was inspired a lot by [Unikraft](https://github.com/unikraft/unikraft).
 
 ## Features & TODOs
 
-* [x] Architecture: riscv64, aarch64
-* [x] Platform: QEMU virt riscv64/aarch64
+* [x] Architecture: x86_64, riscv64, aarch64
+* [x] Platform: QEMU pc-q35 (x86_64), virt (riscv64/aarch64)
 * [x] Multi-thread
-* [x] Cooperative/preemptive scheduler
+* [x] FIFO/RR/CFS scheduler
 * [x] VirtIO net/blk/gpu drivers
-* [x] TCP net stack using [smoltcp](https://github.com/smoltcp-rs/smoltcp)
+* [x] TCP/UDP net stack using [smoltcp](https://github.com/smoltcp-rs/smoltcp)
 * [x] Synchronization/Mutex
 * [x] SMP scheduling with single run queue
 * [x] File system
@@ -29,10 +29,10 @@ ArceOS was inspired a lot by [Unikraft](https://github.com/unikraft/unikraft).
 
 Example applications can be found in the [apps/](apps/) directory. All applications must at least depend on the following modules, while other modules are optional:
 
-* [axruntime](modules/axruntime/): Bootstraping from the bare-metal environment, and initialization.
+* [axruntime](modules/axruntime/): Bootstrapping from the bare-metal environment, and initialization.
 * [axhal](modules/axhal/): Hardware abstraction layer, provides unified APIs for cross-platform.
 * [axconfig](modules/axconfig/): Platform constants and kernel parameters, such as physical memory base, kernel load addresses, stack size, etc.
-* [axlog](modules/axlog/): Multi-level log definition and printing.
+* [axlog](modules/axlog/): Multi-level formatted logging.
 
 The currently supported applications (Rust), as well as their dependent modules and features, are shown in the following table:
 
@@ -60,6 +60,27 @@ Install [cargo-binutils](https://github.com/rust-embedded/cargo-binutils) to use
 cargo install cargo-binutils
 ```
 
+#### for build&run C apps
+Install `libclang-dev`:
+
+```bash
+sudo apt install libclang-dev
+```
+
+Download&Install `cross-musl-based toolchains`:
+```
+# download
+wget https://musl.cc/aarch64-linux-musl-cross.tgz
+wget https://musl.cc/riscv64-linux-musl-cross.tgz
+wget https://musl.cc/x86_64-linux-musl-cross.tgz
+# install
+tar zxf aarch64-linux-musl-cross.tgz
+tar zxf riscv64-linux-musl-cross.tgz
+tar zxf x86_64-linux-musl-cross.tgz
+# exec below command in bash OR add below info in ~/.bashrc
+export PATH=`pwd`/x86_64-linux-musl-cross/bin:`pwd`/aarch64-linux-musl-cross/bin:`pwd`/riscv64-linux-musl-cross/bin:$PATH
+```
+
 ### Example apps
 
 ```bash
@@ -67,7 +88,7 @@ cargo install cargo-binutils
 make A=path/to/app ARCH=<arch> LOG=<log> NET=[y|n] FS=[y|n]
 ```
 
-Where `<arch>` should be one of `riscv64`, `aarch64`.
+Where `<arch>` should be one of `riscv64`, `aarch64`，`x86_64`.
 
 `<log>` should be one of `off`, `error`, `warn`, `info`, `debug`, `trace`.
 

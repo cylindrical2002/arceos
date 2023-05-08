@@ -1,3 +1,21 @@
+//! Runtime library of [ArceOS](https://github.com/rcore-os/arceos).
+//!
+//! Any application uses ArceOS should link this library. It does some
+//! initialization work before entering the application's `main` function.
+//!
+//! # Cargo Features
+//!
+//! - `alloc`: Enable global memory allocator.
+//! - `paging`: Enable page table manipulation support.
+//! - `irq`: Enable interrupt handling support.
+//! - `multitask`: Enable multi-threading support.
+//! - `smp`: Enable SMP (symmetric multiprocessing) support.
+//! - `fs`: Enable filesystem support.
+//! - `net`: Enable networking support.
+//! - `display`: Enable graphics support.
+//!
+//! All the features are optional and disabled by default.
+
 #![cfg_attr(not(test), no_std)]
 #![feature(doc_auto_cfg)]
 
@@ -25,7 +43,7 @@ const LOGO: &str = r#"
 d88P     888 888      "Y8888P  "Y8888   "Y88888P"   "Y8888P"
 "#;
 
-extern "Rust" {
+extern "C" {
     fn main();
 }
 
@@ -74,6 +92,15 @@ fn is_init_ok() -> bool {
     INITED_CPUS.load(Ordering::Acquire) == axconfig::SMP
 }
 
+/// The main entry point of the ArceOS runtime.
+///
+/// It is called from the bootstrapping code in [axhal]. `cpu_id` is the ID of
+/// the current CPU, and `dtb` is the address of the device tree blob. It
+/// finally calls the application's `main` function after all initialization
+/// work is done.
+///
+/// In multi-core environment, this function is called on the primary CPU,
+/// and the secondary CPUs call [`rust_main_secondary`].
 #[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
     ax_println!("{}", LOGO);
@@ -120,6 +147,9 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
         remap_kernel_memory().expect("remap kernel memoy failed");
     }
 
+    info!("Initialize platform devices...");
+    axhal::platform_init();
+
     #[cfg(feature = "multitask")]
     axtask::init_scheduler();
 
@@ -138,11 +168,14 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
         axdisplay::init_display(all_devices.display);
     }
 
-    info!("Initialize interrupt handlers...");
-    init_interrupt();
-
     #[cfg(feature = "smp")]
     self::mp::start_secondary_cpus(cpu_id);
+
+    #[cfg(feature = "irq")]
+    {
+        info!("Initialize interrupt handlers...");
+        init_interrupt();
+    }
 
     info!("Primary CPU {} init OK.", cpu_id);
     INITED_CPUS.fetch_add(1, Ordering::Relaxed);
@@ -153,7 +186,13 @@ pub extern "C" fn rust_main(cpu_id: usize, dtb: usize) -> ! {
 
     unsafe { main() };
 
-    axtask::exit(0)
+    #[cfg(feature = "multitask")]
+    axtask::exit(0);
+    #[cfg(not(feature = "multitask"))]
+    {
+        debug!("main task exited: exit_code={}", 0);
+        axhal::misc::terminate();
+    }
 }
 
 #[cfg(feature = "alloc")]
@@ -208,6 +247,7 @@ fn remap_kernel_memory() -> Result<(), axhal::paging::PagingError> {
     Ok(())
 }
 
+#[cfg(feature = "irq")]
 fn init_interrupt() {
     use axhal::time::TIMER_IRQ_NUM;
 

@@ -1,19 +1,22 @@
+//! Task APIs for single-task configuration.
+
+/// For single-task situation, we just relax the CPU and wait for incoming
+/// interrupts.
 pub fn yield_now() {
-    axhal::arch::wait_for_irqs();
-}
-
-pub fn exit(exit_code: i32) -> ! {
-    debug!("main task exited: exit_code={}", exit_code);
-    axhal::misc::terminate()
-}
-
-pub fn sleep(dur: core::time::Duration) {
-    let deadline = axhal::time::current_time() + dur;
-    sleep_until(deadline)
-}
-
-pub fn sleep_until(deadline: axhal::time::TimeValue) {
-    while axhal::time::current_time() < deadline {
+    if cfg!(feature = "irq") {
+        axhal::arch::wait_for_irqs();
+    } else {
         core::hint::spin_loop();
     }
+}
+
+/// For single-task situation, we just busy wait for the given duration.
+pub fn sleep(dur: core::time::Duration) {
+    axhal::time::busy_wait(dur);
+}
+
+/// For single-task situation, we just busy wait until reaching the given
+/// deadline.
+pub fn sleep_until(deadline: axhal::time::TimeValue) {
+    axhal::time::busy_wait_until(deadline);
 }

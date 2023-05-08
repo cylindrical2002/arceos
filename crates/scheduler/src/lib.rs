@@ -1,14 +1,14 @@
-//! Various scheduler algorithms in an unified interface.
+//! Various scheduler algorithms in a unified interface.
 //!
 //! Currently supported algorithms:
 //!
 //! - [`FifoScheduler`]: FIFO (First-In-First-Out) scheduler (cooperative).
-//! - [`RRScheduler`]: Round-Robin scheduler (preemptive).
+//! - [`RRScheduler`]: Round-robin scheduler (preemptive).
 
 #![cfg_attr(not(test), no_std)]
-#![feature(const_trait_impl)]
 #![feature(const_mut_refs)]
 
+mod cfs;
 mod fifo;
 mod round_robin;
 
@@ -17,6 +17,7 @@ mod tests;
 
 extern crate alloc;
 
+pub use cfs::{CFSTask, CFScheduler};
 pub use fifo::{FifoScheduler, FifoTask};
 pub use round_robin::{RRScheduler, RRTask};
 
@@ -61,4 +62,7 @@ pub trait BaseScheduler {
     ///
     /// `current` is the current running task.
     fn task_tick(&mut self, current: &Self::SchedItem) -> bool;
+
+    /// set priority for a task
+    fn set_priority(&mut self, task: &Self::SchedItem, prio: isize) -> bool;
 }

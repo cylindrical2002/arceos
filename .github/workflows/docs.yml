@@ -1,8 +1,6 @@
-name: Deploy docs
+name: Build & Deploy docs
 
-on:
-  push:
-    branches: [main]
+on: [push, pull_request]
 
 jobs:
   doc:
@@ -18,8 +16,10 @@ jobs:
         profile: minimal
         toolchain: nightly
     - name: Build docs
-      run: make doc
+      continue-on-error: ${{ github.ref != 'refs/heads/main' && github.event_name != 'pull_request' }}
+      run: make doc_check_missing
     - name: Deploy to Github Pages
+      if: ${{ github.ref == 'refs/heads/main' }}
       uses: JamesIves/github-pages-deploy-action@v4
       with:
         single-commit: true
