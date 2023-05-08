@@ -8,7 +8,7 @@ What happens when "make A=apps/net/httpserver ARCH=aarch64 LOG=info NET=y SMP=1 
 
 - How ArceOS build?
     - Firstly check Makefile: Based on different parameters, select whether FS/NET/GRAPHIC param is yes or not. If it is y, it will be compiled in conditional compilation.
-    - `cargo.mk` determines whether to add the corresponding feature based on whether FS/NET/GRAPHIC is set to y.
+    - Jump to `cargo.mk`, finding it determines whether to add the corresponding feature based on whether FS/NET/GRAPHIC is set to y.
     ```
     features-$(FS) += libax/fs
     features-$(NET) += libax/net
