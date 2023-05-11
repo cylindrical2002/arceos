@@ -32,15 +32,15 @@ impl From<MemRegionFlags> for MappingFlags {
 pub struct PagingIfImpl;
 
 impl PagingIf for PagingIfImpl {
-    fn alloc_frame() -> Option<PhysAddr> {
+    fn alloc_frames(page_num: usize) -> Option<PhysAddr> {
         global_allocator()
-            .alloc_pages(1, PAGE_SIZE_4K)
+            .alloc_pages(page_num, PAGE_SIZE_4K * page_num)
             .map(|vaddr| virt_to_phys(vaddr.into()))
             .ok()
     }
 
-    fn dealloc_frame(paddr: PhysAddr) {
-        global_allocator().dealloc_pages(phys_to_virt(paddr).as_usize(), 1)
+    fn dealloc_frames(paddr: PhysAddr, page_num: usize) {
+        global_allocator().dealloc_pages(phys_to_virt(paddr).as_usize(), page_num)
     }
 
     #[inline]
