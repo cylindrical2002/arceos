@@ -15,6 +15,8 @@ endif
 features-$(FS) += libax/fs
 features-$(NET) += libax/net
 features-$(GRAPHIC) += libax/display
+features-$(HV) += libax/hv
+
 
 ifeq ($(BUS),pci)
   features-y += libax/bus-pci
@@ -52,6 +54,10 @@ ifeq ($(default_features),n)
 endif
 
 rustc_flags := -Clink-args="-T$(LD_SCRIPT) -no-pie"
+
+ifeq ($(HV), y)
+  rustc_flags += -Ctarget-feature=+h
+endif 
 
 define cargo_build
   cargo rustc $(build_args) $(1) -- $(rustc_flags)

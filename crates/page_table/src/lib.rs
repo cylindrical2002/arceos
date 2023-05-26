@@ -88,9 +88,19 @@ pub trait PagingMetaData: Sync + Send + Sized {
 /// [`PageTable64`].
 pub trait PagingIf: Sized {
     /// Request to allocate a 4K-sized physical frame.
-    fn alloc_frames(page_num: usize) -> Option<PhysAddr>;
+    fn alloc_frame() -> Option<PhysAddr>;
+
+    /// Request to allocate `page_nums` 4K-sized physical frame.
+    #[cfg(target_arch = "riscv64")]
+    fn alloc_frames(page_nums: usize) -> Option<PhysAddr>;
+
     /// Request to free a allocated physical frame.
-    fn dealloc_frames(paddr: PhysAddr, page_num: usize);
+    fn dealloc_frame(paddr: PhysAddr);
+
+    /// Request to free `page_nums` 4K-sized physical frame.
+    #[cfg(target_arch = "riscv64")]
+    fn dealloc_frames(paddr: PhysAddr, page_nums: usize);
+
     /// Returns a virtual address that maps to the given physical address.
     ///
     /// Used to access the physical memory directly in page table implementation.

@@ -14,6 +14,8 @@ jobs:
         profile: minimal
         toolchain: nightly
         components: rust-src, clippy, rustfmt
+    - name: Clone github submodule
+      run: git submodule update --init --recursive
     - name: Clippy for the default target
       run: cargo clippy --all-features
     - name: Clippy for x86_64
@@ -44,6 +46,8 @@ jobs:
         crate: cargo-binutils
         version: latest
         use-tool-cache: true
+    - name: Clone github submodule
+      run: git submodule update --init --recursive
     - name: Build helloworld
       run: make ARCH=${{ matrix.arch }} A=apps/helloworld
     - name: Build memtest
@@ -66,6 +70,8 @@ jobs:
       run: make ARCH=${{ matrix.arch }} A=apps/net/httpclient NET=y
     - name: Build net/httpserver
       run: make ARCH=${{ matrix.arch }} A=apps/net/httpserver NET=y
+    - name: Build hv
+      run: make ARCH=${{ matrix.arch }} A=apps/hv HV=y
 
     - name: Download musl toolchain
       run: |
