@@ -2,10 +2,12 @@
 
 QEMU := qemu-system-$(ARCH)
 
+GUESTSRC ?= ../guest
+
 GUEST ?= linux
-ROOTFS ?= apps/hv/guest/$(GUEST)/rootfs.img
-GUEST_DTB ?= apps/hv/guest/$(GUEST)/$(GUEST).dtb
-GUEST_BIN ?= apps/hv/guest/$(GUEST)/$(GUEST).bin
+ROOTFS ?= $(GUESTSRC)/$(GUEST)/rootfs.img
+GUEST_DTB ?= $(GUESTSRC)/$(GUEST)/$(GUEST).dtb
+GUEST_BIN ?= $(GUESTSRC)/$(GUEST)/$(GUEST).bin
 
 ifeq ($(BUS), mmio)
   vdev-suffix := device
@@ -57,7 +59,7 @@ ifeq ($(GUEST), linux)
 	  -append "root=/dev/vda rw console=ttyS0" 
 else ifeq ($(GUEST), rCore-Tutorial)
   qemu_args-$(HV) += \
-    	-drive file=guest/rCore-Tutorial-v3/fs.img,if=none,format=raw,id=x0 \
+    	-drive file=$(GUESTSRC)/rCore-Tutorial-v3/fs.img,if=none,format=raw,id=x0 \
 	    -device virtio-blk-device,drive=x0 \
       -device virtio-gpu-device \
       -device virtio-keyboard-device \
