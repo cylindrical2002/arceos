@@ -8,8 +8,8 @@ extern crate libax;
 use dtb::MachineMeta;
 use libax::{
     hv::{
-        self, GuestPageTable, GuestPageTableTrait, HyperCallMsg, HyperCraftHalImpl, PerCpu, Result,
-        VCpu, VmCpus, VmExitInfo, VM,
+        GuestPageTable, GuestPageTableTrait, HyperCraftHalImpl, PerCpu, Result,
+        VmCpus, VM, VmTrait,
     },
     info,
 };
@@ -18,13 +18,15 @@ use page_table_entry::MappingFlags;
 mod dtb;
 
 #[no_mangle]
+
+/// axruntime 的 rust_main 函数会调用到这个
 fn main(hart_id: usize) {
     println!("Hello, hv!");
 
     #[cfg(target_arch = "riscv64")]
     {
         // boot cpu
-        PerCpu::<HyperCraftHalImpl>::init(0, 0x4000);
+        let _ = PerCpu::<HyperCraftHalImpl>::init(0, 0x4000);
 
         // get current percpu
         let pcpu = PerCpu::<HyperCraftHalImpl>::this_cpu();
@@ -36,7 +38,8 @@ fn main(hart_id: usize) {
 
         // add vcpu into vm
         vcpus.add_vcpu(vcpu).unwrap();
-        let mut vm: VM<HyperCraftHalImpl, GuestPageTable> = VM::new(vcpus, gpt).unwrap();
+        // because of this line, we need to use libax::hv::VmTrait
+        let mut vm: VM<GuestPageTable> = VM::new(vcpus, gpt).unwrap();
         vm.init_vcpu(0);
 
         // vm run
