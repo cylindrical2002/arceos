@@ -39,7 +39,7 @@ fn main(hart_id: usize) {
         // add vcpu into vm
         vcpus.add_vcpu(vcpu).unwrap();
         // because of this line, we need to use libax::hv::VmTrait
-        let mut vm: VM<GuestPageTable> = VM::new(vcpus, gpt).unwrap();
+        let mut vm: VM<HyperCraftHalImpl, GuestPageTable> = VM::new(vcpus, gpt).unwrap();
         vm.init_vcpu(0);
 
         // vm run
