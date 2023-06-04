@@ -5,9 +5,10 @@ QEMU := qemu-system-$(ARCH)
 GUESTSRC ?= ../guest
 
 GUEST ?= linux
+# ROOTFS is the same for all ARCHITECTURES
 ROOTFS ?= $(GUESTSRC)/$(GUEST)/rootfs.img
-GUEST_DTB ?= $(GUESTSRC)/$(GUEST)/$(GUEST).dtb
-GUEST_BIN ?= $(GUESTSRC)/$(GUEST)/$(GUEST).bin
+GUEST_DTB ?= $(GUESTSRC)/$(GUEST)/$(ARCH)-runtime/$(GUEST).dtb
+GUEST_BIN ?= $(GUESTSRC)/$(GUEST)/$(ARCH)-runtime/$(GUEST).bin
 
 ifeq ($(BUS), mmio)
   vdev-suffix := device
@@ -59,7 +60,7 @@ ifeq ($(GUEST), linux)
 	  -append "root=/dev/vda rw console=ttyS0" 
 else ifeq ($(GUEST), rCore-Tutorial-v3)
   qemu_args-$(HV) += \
-    	-drive file=$(GUESTSRC)/rCore-Tutorial-v3/fs.img,if=none,format=raw,id=x0 \
+    	-drive file=$(GUESTSRC)/$(GUEST)/fs.img,if=none,format=raw,id=x0 \
 	    -device virtio-blk-device,drive=x0 \
       -device virtio-gpu-device \
       -device virtio-keyboard-device \
