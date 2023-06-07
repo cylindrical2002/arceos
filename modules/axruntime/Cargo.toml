@@ -20,9 +20,6 @@ fs = ["alloc", "paging", "axdriver/virtio-blk", "dep:axfs"] # TODO: remove "pagi
 net = ["alloc", "paging", "axdriver/virtio-net", "dep:axnet"]
 display = ["alloc", "paging", "axdriver/virtio-gpu", "dep:axdisplay"]
 
-# Hypervisor (runtime hypervisor feature[axruntime/hv] needs to rely on hardware hypervisor feature[axhal/hv])
-hv = ["alloc", "axhal/hv", "dep:page_table", "dep:page_table_entry", "dep:hypercraft", "dep:guest_page_table"]
-
 [dependencies]
 percpu = { path = "../../crates/percpu" }
 kernel_guard = { path = "../../crates/kernel_guard" }
@@ -38,7 +35,3 @@ axfs = { path = "../axfs", optional = true }
 axnet = { path = "../axnet", optional = true }
 axdisplay = { path = "../axdisplay", optional = true }
 axtask = { path = "../axtask", default-features = false, optional = true }
-hypercraft = { path = "../../crates/hypercraft", optional = true }
-page_table = { path = "../../crates/page_table", optional = true }
-page_table_entry = { path = "../../crates/page_table_entry", optional = true }
-guest_page_table = { path = "../../crates/guest_page_table", optional = true }

@@ -1,8 +1,11 @@
 //! Page table manipulation.
 
 use axalloc::global_allocator;
+use guest_page_table::{
+    GuestMemoryInterface, GuestPageTable64Interface, GuestPageTableError, GuestPageTableResult,
+    GuestPagingIf, GuestPhysAddr, HostPhysAddr,
+};
 use page_table::PagingIf;
-use guest_page_table::GuestPagingIf;
 
 use crate::mem::{phys_to_virt, virt_to_phys, MemRegionFlags, PhysAddr, VirtAddr, PAGE_SIZE_4K};
 
@@ -63,9 +66,22 @@ impl PagingIf for PagingIfImpl {
     }
 }
 
+cfg_if::cfg_if! {
+    if #[cfg(target_arch = "x86_64")] {
+        /// The architecture-specific page table.
+        pub type PageTable = page_table::x86_64::X64PageTable<PagingIfImpl>;
+    } else if #[cfg(any(target_arch = "riscv32", target_arch = "riscv64"))] {
+        /// The architecture-specific page table.
+        pub type PageTable = page_table::riscv::Sv39PageTable<PagingIfImpl>;
+    } else if #[cfg(target_arch = "aarch64")]{
+        /// The architecture-specific page table.
+        pub type PageTable = page_table::aarch64::A64PageTable<PagingIfImpl>;
+    }
+}
+
 ///
 /// Hypervisor Code, for Guest PageTable
-/// 
+///
 #[cfg(feature = "hv")]
 impl GuestPagingIf for PagingIfImpl {
     #[cfg(target_arch = "riscv64")]
@@ -85,15 +101,91 @@ impl GuestPagingIf for PagingIfImpl {
 #[cfg(feature = "hv")]
 pub type GuestPagingIfImpl = PagingIfImpl;
 
+#[cfg(feature = "hv")]
 cfg_if::cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
         /// The architecture-specific page table.
-        pub type PageTable = page_table::x86_64::X64PageTable<PagingIfImpl>;
-    } else if #[cfg(any(target_arch = "riscv32", target_arch = "riscv64"))] {
-        /// The architecture-specific page table.
-        pub type PageTable = page_table::riscv::Sv39PageTable<PagingIfImpl>;
+        pub type GuestPageTableStub = guest_page_table::x86_64::X64PageTable<PagingIfImpl>;
+    } else if #[cfg(target_arch = "riscv64")] {
+        /// The architecture-specific guest page table.
+        pub type GuestPageTableStub = guest_page_table::riscv::Sv39x4PageTable<GuestPagingIfImpl>;
     } else if #[cfg(target_arch = "aarch64")]{
         /// The architecture-specific page table.
-        pub type PageTable = page_table::aarch64::A64PageTable<PagingIfImpl>;
+        pub type GuestPageTableStub = guest_page_table::aarch64::A64PageTable<PagingIfImpl>;
+    }
+}
+
+#[cfg(feature = "hv")]
+pub struct GuestPageTable(GuestPageTableStub);
+
+#[cfg(feature = "hv")]
+impl GuestMemoryInterface for GuestPageTable {
+    fn new() -> GuestPageTableResult<Self> {
+        let npt = GuestPageTableStub::try_new_gpt().map_err(|_| GuestPageTableError::NoMemory)?;
+        Ok(GuestPageTable(npt))
+    }
+
+    fn map(
+        &mut self,
+        gpa: GuestPhysAddr,
+        hpa: HostPhysAddr,
+        flags: MappingFlags,
+    ) -> GuestPageTableResult<()> {
+        self.0
+            .map(
+                VirtAddr::from(gpa),
+                PhysAddr::from(hpa),
+                page_table::PageSize::Size4K,
+                flags,
+            )
+            .map_err(|paging_err| {
+                error!("paging error: {:?}", paging_err);
+                GuestPageTableError::Internal
+            })?;
+        Ok(())
+    }
+
+    fn map_region(
+        &mut self,
+        gpa: GuestPhysAddr,
+        hpa: HostPhysAddr,
+        size: usize,
+        flags: MappingFlags,
+    ) -> GuestPageTableResult<()> {
+        self.0
+            .map_region(VirtAddr::from(gpa), PhysAddr::from(hpa), size, flags, true)
+            .map_err(|err| {
+                error!("paging error: {:?}", err);
+                GuestPageTableError::Internal
+            })?;
+        Ok(())
+    }
+
+    fn unmap(&mut self, gpa: GuestPhysAddr) -> GuestPageTableResult<()> {
+        #[cfg(target_arch = "riscv64")]
+        {
+            let (_, _) = self.0.unmap(VirtAddr::from(gpa)).map_err(|paging_err| {
+                error!("paging error: {:?}", paging_err);
+                return GuestPageTableError::Internal;
+            })?;
+            Ok(())
+        }
+        #[cfg(not(target_arch = "riscv64"))]
+        {
+            todo!()
+        }
+    }
+
+    fn translate(&self, gpa: GuestPhysAddr) -> GuestPageTableResult<HostPhysAddr> {
+        let (addr, _, _) = self.0.query(VirtAddr::from(gpa)).map_err(|paging_err| {
+            error!("paging error: {:?}", paging_err);
+            GuestPageTableError::Internal
+        })?;
+        Ok(addr.into())
+    }
+
+    fn token(&self) -> usize {
+        // 这个应该和架构是强相关的
+        8usize << 60 | usize::from(self.0.root_paddr()) >> 12
     }
 }

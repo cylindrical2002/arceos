@@ -21,7 +21,7 @@ platform-qemu-virt-aarch64 = [
     "dep:page_table_entry", "dep:ratio",
 ]
 default = []
-hv = ["paging", "platform-qemu-virt-riscv", "dep:guest_page_table"] # Only RISC-V HV Now
+hv = ["paging", "dep:guest_page_table", "dep:hypercraft"] # Only RISC-V HV Now
 
 [dependencies]
 log = "0.4"
@@ -42,6 +42,7 @@ memory_addr = { path = "../../crates/memory_addr" }
 handler_table = { path = "../../crates/handler_table" }
 crate_interface = { path = "../../crates/crate_interface" }
 guest_page_table = { path = "../../crates/guest_page_table", optional = true }
+hypercraft = { path = "../../crates/hypercraft", optional = true }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 x86 = "0.52"

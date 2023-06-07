@@ -5,11 +5,12 @@ extern crate alloc;
 #[macro_use]
 extern crate libax;
 
-use gpm::setup_gpm;
 use libax::hv::{GuestPageTable, HyperCraftHalImpl, PerCpu, VmCpus, VmTrait, VM};
 
 mod dtb;
 mod gpm;
+
+use gpm::setup_gpm;
 #[no_mangle]
 
 /// For any single core Hypervisor，this is the same.

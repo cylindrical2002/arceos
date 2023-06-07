@@ -11,4 +11,4 @@ impl PagingMetaData for Sv39x4MetaData {
 }
 
 /// Nested page table define.
-pub type NestedPageTable<I> = PageTable64<Sv39x4MetaData, Rv64PTE, I>;
+pub type Sv39x4PageTable<I> = PageTable64<Sv39x4MetaData, Rv64PTE, I>;

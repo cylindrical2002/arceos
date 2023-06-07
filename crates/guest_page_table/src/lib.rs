@@ -14,13 +14,13 @@ use memory_addr::PhysAddr;
 
 #[cfg(target_arch = "riscv64")]
 #[path = "arch/riscv.rs"]
-mod arch;
+pub mod riscv;
 #[cfg(target_arch = "x86_64")]
 #[path = "arch/x86.rs"]
-mod arch;
+pub mod x86;
 #[cfg(target_arch = "aarch64")]
 #[path = "arch/aarch.rs"]
-mod arch;
+pub mod aarch;
 
 mod bits64;
 mod interface;
@@ -33,7 +33,6 @@ pub use self::interface::{
     HostPageNum, HostPhysAddr, HostVirtAddr
 };
 pub use self::error::{GuestPageTableResult, GuestPageTableError};
-pub use self::arch::NestedPageTable;
 
 pub trait GuestPagingIf: PagingIf {
     /// Request to allocate `page_nums` 4K-sized physical frame.
