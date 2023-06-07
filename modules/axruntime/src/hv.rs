@@ -1,12 +1,13 @@
 use axalloc::global_allocator;
 use axhal::mem::PAGE_SIZE_4K;
-use hypercraft::{HostPhysAddr, HyperCraftHal};
+use hypercraft::HyperCraftHal;
+use guest_page_table::HostPhysAddr;
 
 /// An empty struct to implementate of `HyperCraftHal`
 pub struct HyperCraftHalImpl;
 
 impl HyperCraftHal for HyperCraftHalImpl {
-    fn alloc_pages(num_pages: usize) -> Option<hypercraft::HostPhysAddr> {
+    fn alloc_pages(num_pages: usize) -> Option<HostPhysAddr> {
         global_allocator()
             .alloc_pages(num_pages, PAGE_SIZE_4K)
             .map(|pa| pa as HostPhysAddr)

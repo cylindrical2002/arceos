@@ -1,0 +1,11 @@
+[package]
+name = "guest_page_table"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+page_table = { path = "../page_table" }
+page_table_entry = { path = "../page_table_entry" }
+memory_addr = { path = "../memory_addr" }

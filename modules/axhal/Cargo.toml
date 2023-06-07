@@ -12,7 +12,7 @@ documentation = "https://rcore-os.github.io/arceos/axhal/index.html"
 [features]
 smp = []
 fp_simd = []
-paging = ["axalloc", "page_table"]
+paging = ["dep:axalloc", "dep:page_table"]
 irq = []
 platform-pc-x86 = ["axconfig/platform-pc-x86", "dep:ratio"]
 platform-qemu-virt-riscv = ["axconfig/platform-qemu-virt-riscv"]
@@ -21,7 +21,7 @@ platform-qemu-virt-aarch64 = [
     "dep:page_table_entry", "dep:ratio",
 ]
 default = []
-hv = ["paging", "platform-qemu-virt-riscv"]
+hv = ["paging", "platform-qemu-virt-riscv", "dep:guest_page_table"] # Only RISC-V HV Now
 
 [dependencies]
 log = "0.4"
@@ -41,6 +41,7 @@ percpu = { path = "../../crates/percpu" }
 memory_addr = { path = "../../crates/memory_addr" }
 handler_table = { path = "../../crates/handler_table" }
 crate_interface = { path = "../../crates/crate_interface" }
+guest_page_table = { path = "../../crates/guest_page_table", optional = true }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 x86 = "0.52"

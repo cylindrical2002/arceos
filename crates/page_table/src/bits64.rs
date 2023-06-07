@@ -37,6 +37,15 @@ pub struct PageTable64<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> {
 }
 
 impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
+    /// For Construct it out of the crate
+    pub fn new(_root_paddr: PhysAddr, _intrm_tables: Vec<PhysAddr>) -> Self {
+        Self {
+            root_paddr: _root_paddr,
+            intrm_tables: _intrm_tables,
+            _phantom: PhantomData,
+        }
+    }
+
     /// Creates a new page table instance or returns the error.
     ///
     /// It will allocate a new page for the root page table.
@@ -45,21 +54,6 @@ impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
         Ok(Self {
             root_paddr,
             intrm_tables: vec![root_paddr],
-            _phantom: PhantomData,
-        })
-    }
-
-    #[cfg(target_arch = "riscv64")]
-    pub fn try_new_gpt() -> PagingResult<Self> {
-        let root_paddr = Self::alloc_guest_page_table()?;
-        Ok(Self {
-            root_paddr,
-            intrm_tables: vec![
-                root_paddr,
-                root_paddr + 0x1000,
-                root_paddr + 0x2000,
-                root_paddr + 0x3000,
-            ],
             _phantom: PhantomData,
         })
     }
@@ -243,20 +237,9 @@ impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
 // Private implements.
 impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
     fn alloc_table() -> PagingResult<PhysAddr> {
-        if let Some(paddr) = IF::alloc_frames(1) {
+        if let Some(paddr) = IF::alloc_frame() {
             let ptr = IF::phys_to_virt(paddr).as_mut_ptr();
             unsafe { core::ptr::write_bytes(ptr, 0, PAGE_SIZE_4K) };
-            Ok(paddr)
-        } else {
-            Err(PagingError::NoMemory)
-        }
-    }
-
-    #[cfg(target_arch = "riscv64")]
-    fn alloc_guest_page_table() -> PagingResult<PhysAddr> {
-        if let Some(paddr) = IF::alloc_frames(4) {
-            let ptr = IF::phys_to_virt(paddr).as_mut_ptr();
-            unsafe { core::ptr::write_bytes(ptr, 0, PAGE_SIZE_4K * 4) };
             Ok(paddr)
         } else {
             Err(PagingError::NoMemory)
@@ -383,7 +366,7 @@ impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> PageTable64<M, PTE, IF> {
 impl<M: PagingMetaData, PTE: GenericPTE, IF: PagingIf> Drop for PageTable64<M, PTE, IF> {
     fn drop(&mut self) {
         for frame in &self.intrm_tables {
-            IF::dealloc_frames(*frame, 1);
+            IF::dealloc_frame(*frame);
         }
     }
 }

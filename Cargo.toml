@@ -32,7 +32,9 @@ members = [
     "crates/driver_pci",
     "crates/driver_virtio",
     "crates/flatten_objects",
+    "crates/guest_page_table",
     "crates/handler_table",
+    "crates/hypercraft",
     "crates/kernel_guard",
     "crates/lazy_init",
     "crates/linked_list",
@@ -47,7 +49,6 @@ members = [
     "crates/spinlock",
     "crates/timer_list",
     "crates/tuple_for_each",
-    "crates/hypercraft",
 
     "modules/axalloc",
     "modules/axconfig",

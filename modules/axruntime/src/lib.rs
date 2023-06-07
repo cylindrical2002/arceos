@@ -13,6 +13,7 @@
 //! - `fs`: Enable filesystem support.
 //! - `net`: Enable networking support.
 //! - `display`: Enable graphics support.
+//! - `hv`: Enable hypervisor support.
 //!
 //! All the features are optional and disabled by default.
 
@@ -249,6 +250,7 @@ fn init_allocator() {
 }
 
 #[cfg(feature = "paging")]
+#[allow(unused)]
 fn remap_kernel_memory() -> Result<(), axhal::paging::PagingError> {
     use axhal::mem::{memory_regions, phys_to_virt};
     use axhal::paging::PageTable;
