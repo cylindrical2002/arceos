@@ -51,6 +51,12 @@ extern "C" {
     fn main();
 }
 
+#[cfg(feature = "hv")]
+mod hal;
+
+#[cfg(feature = "hv")]
+pub use hal::HyperCraftHalImpl;
+
 struct LogIfImpl;
 
 #[crate_interface::impl_interface]

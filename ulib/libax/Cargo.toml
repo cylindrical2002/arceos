@@ -47,7 +47,7 @@ net = ["alloc", "axruntime/net", "dep:axdriver", "dep:axnet"]
 pipe = ["alloc"]
 
 # Hypervisor
-hv = ["dep:hypercraft", "dep:guest_page_table", "axhal/hv"]
+hv = ["dep:hypercraft", "dep:guest_page_table", "axruntime/hv"]
 
 # Display
 display = ["axruntime/display", "dep:axdriver", "dep:axdisplay"]

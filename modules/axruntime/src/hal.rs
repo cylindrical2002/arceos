@@ -1,12 +1,11 @@
 use axalloc::global_allocator;
-use super::mem::PAGE_SIZE_4K;
+use axhal::mem::PAGE_SIZE_4K;
 use hypercraft::HyperCraftHal;
 use guest_page_table::HostPhysAddr;
 
 /// An empty struct to implementate of `HyperCraftHal`
 pub struct HyperCraftHalImpl;
 
-/// I want this Impl is Architecture independent
 impl HyperCraftHal for HyperCraftHalImpl {
     fn alloc_pages(num_pages: usize) -> Option<HostPhysAddr> {
         global_allocator()
